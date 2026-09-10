@@ -1,0 +1,20 @@
+# Default config for assignments/assignment_1/assignment_1.py
+# Run: uv run python assignments/assignment_1/assignment_1.py --config assignments/assignment_1/assignment_1.yaml
+# Angles are floats in radians (no expression parsing).
+mode: analysis  # sanity_check | plot_sim | analysis
+integrator_params:
+  min_step_size: 0.001
+  max_step_size_during_jump: 0.001
+model_params:
+  mass: 1.0
+  g: 9.81
+  length: 1.0
+  num_spokes: 4 # pi/6 (6 spokes)
+  gamma_multiplier: 0.25 # pi/8
+# state_0: [0.916297857, 0.316]
+theta_dot_fixpoint_multiplier: 0.1
+sampling_period: 0.1
+final_time: 10.0
+fig_dir: assignments/assignment_1/figs/num_spokes_4
+if_plot: true
+if_RoA_analysis: true
