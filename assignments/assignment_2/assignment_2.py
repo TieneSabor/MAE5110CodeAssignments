@@ -1,4 +1,9 @@
+# Run-location bootstrap: this script lives two levels below the workspace root,
+# so plain `python assignments/assignment_1/assignment_1.py` would not find the
+# top-level `models` / `integrators` packages without PYTHONPATH.
+import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,6 +32,7 @@ state_traj = np.zeros((2, n_timesteps))
 state_traj[:, 0] = initial_state
 completed_steps = 0
 
+step = 0
 # Simulation loop. Replace this Euler step with your own integrator as needed.
 for step, t in enumerate(time_traj[:-1]):
     state = state_traj[:, step]
@@ -62,7 +68,7 @@ if frame_indices[-1] != time_traj.size - 1:
 animation = FuncAnimation(
     fig, draw_frame, frames=frame_indices, interval=1000 / fps, repeat=False
 )
-output = Path("output/assignment_2")
+output = Path("assignments/assignment_2/output")
 output.mkdir(parents=True, exist_ok=True)
 animation.save(output / "walker.gif", writer=PillowWriter(fps=fps))
 

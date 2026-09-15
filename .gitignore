@@ -53,3 +53,4 @@ tmp/pdfs/
 
 # Local-only deliverables (report.md + figs + future pdfs, per-assignment)
 assignments/*/deliverables/
+deliverables/
