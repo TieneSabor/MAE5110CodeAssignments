@@ -9,12 +9,12 @@ model_params:
   mass: 1.0
   g: 9.81
   length: 1.0
-  num_spokes: 5 # pi/6 (6 spokes)
-  gamma_multiplier: 0.25 # times pi/2 
+  num_spokes: 6 # pi/6 (6 spokes)
+  gamma_multiplier: 0.20 # times pi/2 
 # state_0: [0.916297857, 0.316]
-theta_dot_fixpoint_multiplier: 0.5
+theta_dot_fixpoint_multiplier: -20.0
 sampling_period: 0.1
 final_time: 10.0
-fig_dir: assignments/assignment_1/figs/num_spokes_5
+fig_dir: assignments/assignment_1/figs/test
 if_plot: true
 if_RoA_analysis: true
