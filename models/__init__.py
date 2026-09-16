@@ -6,4 +6,8 @@
 
 # __all__ = ["pendulum", "bouncing_ball"]
 
-__all__ = ["model_base", "model_pendulum", "model_bouncing_ball", "model_rimless_wheel"]
+__all__ = ["model_base", \
+           "model_pendulum", \
+           "model_bouncing_ball", \
+           "model_rimless_wheel", \
+           "model_inverted_pendulum_walker"]

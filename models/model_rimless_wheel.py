@@ -33,7 +33,7 @@ class ModelRimlessWheel(ModelBase):
         theta_ddot = g * np.sin(theta) / length
         return np.array([theta_dot, theta_ddot])
 
-    def discrete_jump(self, state, params: dict | None = None) -> np.ndarray:
+    def discrete_jump(self, state, params: dict | None = None) -> tuple[int, np.ndarray]:
         if params is None:
             params = self.get_params()
 
@@ -49,17 +49,17 @@ class ModelRimlessWheel(ModelBase):
             logger.debug(f"ModelRimlessWheel: Forward jump. State: {state}")
             theta = gamma - alpha
             theta_dot = theta_dot * np.cos(2 * alpha)
-            return np.array([theta, theta_dot])
+            return 1, np.array([theta, theta_dot])
         # from gamma - alpha to alpha + gamma
         elif (theta <= (gamma - alpha)) and (theta_dot < 0):
             logger.debug(f"ModelRimlessWheel: Backward jump. State: {state}")
             theta = alpha + gamma
             theta_dot = theta_dot * np.cos(2 * alpha)
-            return np.array([theta, theta_dot])
+            return 2, np.array([theta, theta_dot])
         else:
             # no jump occurs
             logger.debug(f"ModelRimlessWheel: No jump. State: {state}")
-            return state
+            return 0, state
 
     def generate_params(self):
         params = {
@@ -88,3 +88,4 @@ class ModelRimlessWheel(ModelBase):
         potential_energy = mass * g * length * np.cos(angle)
         
         return kinetic_energy, potential_energy
+    

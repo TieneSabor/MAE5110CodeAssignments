@@ -1,6 +1,10 @@
 from .model_base import ModelBase
 import numpy as np
 
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 class ModelPendulum(ModelBase):
     def __init__(self):
         super().__init__()
@@ -30,8 +34,8 @@ class ModelPendulum(ModelBase):
         state_derivative = np.array([angular_velocity, angular_acceleration])
         return state_derivative
 
-    def discrete_jump(self, state, params: dict | None = None) -> np.ndarray:
-        return state # no discrete jump for pendulum
+    def discrete_jump(self, state, params: dict | None = None) -> tuple[int, np.ndarray]:
+        return 0, state # no discrete jump for pendulum
 
     def generate_params(self):
         params = {

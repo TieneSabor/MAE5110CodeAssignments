@@ -1,6 +1,10 @@
 from .model_base import ModelBase
 import numpy as np
 
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 class ModelBouncingBall(ModelBase):
     def __init__(self):
         super().__init__()
@@ -33,8 +37,8 @@ class ModelBouncingBall(ModelBase):
         dvdt = force / (mass + 1e-200) # avoid divide by zero
         return np.array([dhdt, dvdt])
 
-    def discrete_jump(self, state, params: dict | None = None) -> np.ndarray:
-        return state # no discrete jump for bouncing ball
+    def discrete_jump(self, state, params: dict | None = None) -> tuple[int, np.ndarray]:
+        return 0, state # no discrete jump for bouncing ball
 
     def generate_params(self):
         params = {

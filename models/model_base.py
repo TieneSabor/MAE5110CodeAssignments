@@ -59,7 +59,7 @@ class ModelBase(ABC):
         return np.zeros_like(state)
 
     @abstractmethod
-    def discrete_jump(self, state, params: dict | None = None) -> np.ndarray:
+    def discrete_jump(self, state, params: dict | None = None) -> tuple[int, np.ndarray]:
         """
         Compute the discrete jump in state due to events (e.g., collisions).
         
@@ -67,10 +67,11 @@ class ModelBase(ABC):
         params: dict, parameters for the model.  If None, uses self.param_
         
         Returns:
+            int: jump flag: 0 <-> discrete jump not occurred, otherwise the jump id
             [Mx1] np.array, new state after the discrete jump
         """
         logger.debug("ModelBase: discrete_jump() no-op")
-        return state
+        return 0, state
 
     @abstractmethod
     def generate_params(self):
@@ -96,3 +97,4 @@ class ModelBase(ABC):
         """
         logger.warning("ModelBase: calculate_energy() method not implemented")
         return np.zeros(state.shape[1]), np.zeros(state.shape[1])
+        

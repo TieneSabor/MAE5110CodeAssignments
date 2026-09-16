@@ -6,13 +6,21 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # debug flags
-if_step_num = True
+if_step_num = False
 step_num: int = 0
 fail_step_num: int = 0
 MOD_ = 1000000007
 
 class IntegratorRK4(IntegratorBase):
-    def integrate(self, param_integrator, param_model, time_trajectory, initial_state, model, checkpoint_callback=None):
+    def integrate(self, 
+                  param_integrator, 
+                  param_model, 
+                  time_trajectory, 
+                  initial_state, 
+                  model, 
+                  checkpoint_callback=None,
+                  jump_callback=None,
+                  terminal_callback=None):
         # perf
         global step_num, fail_step_num
         step_num = 0
@@ -22,6 +30,7 @@ class IntegratorRK4(IntegratorBase):
         M = len(initial_state)
         state_trajectory = np.zeros((M, N))
         state_trajectory[:, 0] = initial_state
+        integration_journal = {}
 
         for step, t in enumerate(time_trajectory[:-1]):
             start_time = time_trajectory[step]
@@ -37,11 +46,14 @@ class IntegratorRK4(IntegratorBase):
 
                 no_adapt = True                
                 while (True):
-                    new_state, is_valid = self._try_step(param_integrator, param_model, time_progress, step_size, state_progress, model)
+                    is_valid, jump_id, new_state = self._try_step(param_integrator, param_model, time_progress, step_size, state_progress, model)
                     if is_valid or (step_size <= min_step_size):
                         # Call the checkpoint callback if it exists
                         if checkpoint_callback:
-                            checkpoint_callback(time_progress, state_progress, time_progress + step_size, new_state, model)
+                            checkpoint_callback(time_progress, state_progress, time_progress + step_size, new_state, model, integration_journal)
+
+                        if jump_id != 0 and jump_callback:
+                            jump_callback(time_progress, state_progress, time_progress + step_size, new_state, jump_id, model, integration_journal)
 
                         state_progress = new_state
                         # double the step size if no adaptation was needed and the step was valid, otherwise keep it the same
@@ -56,6 +68,10 @@ class IntegratorRK4(IntegratorBase):
                 logger.debug(f"IntegratorRK4: t={time_progress:.4f}, step_size={step_size:.4e}, last_step_size={last_step_size:.4e}")
 
             state_trajectory[:, step + 1] = state_progress
+            if terminal_callback and terminal_callback(time_trajectory, state_trajectory, step, model, integration_journal):
+                # trim the trajectory to the current step + 1
+                state_trajectory = state_trajectory[:, : step + 2]
+                break
             
         if if_step_num: 
             logger.info(f"IntegratorRK4: Total steps taken: {step_num}, {fail_step_num} failed steps")
@@ -73,8 +89,9 @@ class IntegratorRK4(IntegratorBase):
         model: The model object that provides the dynamics and discrete jump methods
 
         returns:
-            state: The new state after taking the RK4 step
             is_valid: Boolean indicating if the step was successful (always True for fixed step RK4)
+            jump_id: Integer indicating the type of discrete jump that occurred (0 if no jump)
+            state: The new state after taking the RK4 step
         """
         # perf
         global step_num, fail_step_num
@@ -86,16 +103,15 @@ class IntegratorRK4(IntegratorBase):
 
         new_state = state + (step / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
 
-        new_state_plus = model.discrete_jump(new_state, param_model)
-        jump_occurred = not np.allclose(new_state, new_state_plus)
+        jump_id, new_state_plus = model.discrete_jump(new_state, param_model)
         max_step_size_during_jump = param_integrator.get("max_step_size_during_jump", 1e-3)
 
         if if_step_num: 
             step_num = (step_num + 1) % MOD_
 
-        if jump_occurred and step > max_step_size_during_jump:
+        if jump_id != 0 and step > max_step_size_during_jump:
             if if_step_num: 
                 fail_step_num = (fail_step_num + 1) % MOD_
-            return new_state_plus, False  # Step is invalid due to discrete jump
+            return False, jump_id, new_state_plus  # Step is invalid due to discrete jump
 
-        return new_state_plus, True
+        return True, jump_id, new_state_plus
