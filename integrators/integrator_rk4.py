@@ -32,6 +32,10 @@ class IntegratorRK4(IntegratorBase):
         state_trajectory[:, 0] = initial_state
         integration_journal = {}
 
+        # to support multi process
+        if param_model is not None:
+            model.set_params(param_model)
+
         for step, t in enumerate(time_trajectory[:-1]):
             start_time = time_trajectory[step]
             target_time = time_trajectory[step + 1]
@@ -46,7 +50,7 @@ class IntegratorRK4(IntegratorBase):
 
                 no_adapt = True                
                 while (True):
-                    is_valid, jump_id, new_state = self._try_step(param_integrator, param_model, time_progress, step_size, state_progress, model)
+                    is_valid, jump_id, new_state = self._try_step(param_integrator, time_progress, step_size, state_progress, model)
                     if is_valid or (step_size <= min_step_size):
                         # Call the checkpoint callback if it exists
                         if checkpoint_callback:
@@ -76,9 +80,9 @@ class IntegratorRK4(IntegratorBase):
         if if_step_num: 
             logger.info(f"IntegratorRK4: Total steps taken: {step_num}, {fail_step_num} failed steps")
 
-        return state_trajectory
+        return state_trajectory, integration_journal
 
-    def _try_step(self, param_integrator, param_model, t: float, step: float, state: np.ndarray, model):
+    def _try_step(self, param_integrator, t: float, step: float, state: np.ndarray, model):
         """
         Attempt to take a single RK4 step. Currently if discrete jumps happens, we check if the step size is less than threshold.
 
@@ -96,14 +100,14 @@ class IntegratorRK4(IntegratorBase):
         # perf
         global step_num, fail_step_num
 
-        k1 = model.dynamics(t, state, param_model)
-        k2 = model.dynamics(t + step / 2, state + (step / 2) * k1, param_model)
-        k3 = model.dynamics(t + step / 2, state + (step / 2) * k2, param_model)
-        k4 = model.dynamics(t + step, state + step * k3, param_model)
+        k1 = model.dynamics(t, state)
+        k2 = model.dynamics(t + step / 2, state + (step / 2) * k1)
+        k3 = model.dynamics(t + step / 2, state + (step / 2) * k2)
+        k4 = model.dynamics(t + step, state + step * k3)
 
         new_state = state + (step / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
 
-        jump_id, new_state_plus = model.discrete_jump(new_state, param_model)
+        jump_id, new_state_plus = model.discrete_jump(new_state)
         max_step_size_during_jump = param_integrator.get("max_step_size_during_jump", 1e-3)
 
         if if_step_num: 

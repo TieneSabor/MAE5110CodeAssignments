@@ -1,1 +1,1 @@
-__all__ = ["utilities", "plot_energy", "plot_phase", "plot_grid_map"]
+__all__ = ["utilities", "plot_energy", "plot_phase", "plot_grid_map", "plot_animtation"]

@@ -44,4 +44,4 @@ class IntegratorBase(ABC):
         N = len(time_trajectory)
         M = len(initial_state)
         state_trajectory = np.zeros((M, N))
-        return state_trajectory
+        return state_trajectory, {}
