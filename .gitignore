@@ -45,3 +45,12 @@ uv.lock
 
 # Private / local tooling (not for git)
 .opencode/
+assignments_tex/
+
+# Assignment 2 figures, numerical tables, and compiled report are reproducible.
+output/
+tmp/pdfs/
+
+# Local-only deliverables (report.md + figs + future pdfs, per-assignment)
+assignments/*/deliverables/
+deliverables/
